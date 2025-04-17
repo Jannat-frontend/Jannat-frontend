@@ -1,0 +1,130 @@
+<!-- Jannat Foundation Quiz - Register Page with Slideshow -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Register - Jannat Foundation Quiz</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <style>
+    .slide { display: none; }
+    .active-slide { display: block; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center bg-blue-50 p-4">
+  <div class="w-full max-w-md bg-white shadow-lg rounded-2xl p-6">
+    <h1 class="text-2xl font-bold text-center text-blue-700 mb-6">Register</h1>
+
+    <!-- Slideshow -->
+    <div class="mb-4">
+      <div class="text-center text-sm font-semibold text-gray-600 mb-2">Recent Winners</div>
+      <div class="relative h-20">
+        <div class="slide active-slide text-center font-semibold text-green-600">₹1500 paid to Ramesh (Bihar)</div>
+        <div class="slide text-center font-semibold text-green-600">₹1500 awarded to Sneha (Kerala)</div>
+        <div class="slide text-center font-semibold text-green-600">₹1500 given to Salim (Delhi)</div>
+      </div>
+    </div>
+
+    <!-- Form -->
+    <form id="registerForm" class="space-y-4">
+      <input type="text" id="name" placeholder="Full Name" class="w-full px-4 py-2 border rounded-xl" required />
+      <input type="text" id="city" placeholder="City & Pin Code" class="w-full px-4 py-2 border rounded-xl" required />
+      <input type="email" id="email" placeholder="Email" class="w-full px-4 py-2 border rounded-xl" required />
+      <input type="text" id="mobile" placeholder="Mobile Number" class="w-full px-4 py-2 border rounded-xl" required />
+      <input type="password" id="password" placeholder="Password" class="w-full px-4 py-2 border rounded-xl" required />
+      <button type="button" id="payAndRegister" class="w-full bg-blue-600 text-white py-2 rounded-xl font-semibold hover:bg-blue-700">Pay ₹20 & Register</button>
+    </form>
+
+    <p class="text-sm text-center mt-4">Already have an account? <a href="login.html" class="text-blue-600 hover:underline">Login here</a></p>
+  </div>
+
+  <footer class="text-xs text-gray-500 text-center mt-6">© 2025 Jannat Foundation</footer>
+
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script>
+    const backendURL = "https://jannat-backend.onrender.com"; // Your live backend
+
+    document.getElementById("payAndRegister").addEventListener("click", async function () {
+      const name = document.getElementById("name").value;
+      const city = document.getElementById("city").value;
+      const email = document.getElementById("email").value;
+      const mobile = document.getElementById("mobile").value;
+      const password = document.getElementById("password").value;
+
+      if (!name || !city || !email || !mobile || !password) {
+        alert("Please fill all fields.");
+        return;
+      }
+
+      try {
+        // Step 1: Register the user
+        const registerRes = await fetch(`${backendURL}/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, city, email, mobile, password })
+        });
+
+        if (!registerRes.ok) throw new Error("Registration failed");
+
+        // Step 2: Create Razorpay order
+        const paymentRes = await fetch(`${backendURL}/payment`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ amount: 2000, currency: "INR", receipt: `receipt_${mobile}` })
+        });
+
+        const order = await paymentRes.json();
+
+        const options = {
+          key: "rzp_test_OUGnz1rs9k9vFW", // Replace with your Razorpay key
+          amount: order.amount,
+          currency: order.currency,
+          name: "Jannat Foundation",
+          description: "Quiz Entry Fee",
+          order_id: order.id,
+          handler: async function () {
+            const upi = prompt("Enter your UPI ID to receive rewards if you win:");
+            if (upi) {
+              await fetch(`${backendURL}/save-upi/${mobile}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ upi })
+              });
+
+              // Save name & city locally for quiz page use
+              localStorage.setItem("quizUserName", name);
+              localStorage.setItem("quizUserCity", city);
+
+              alert("Registration & payment successful!");
+              window.location.href = "quiz.html";
+            } else {
+              alert("UPI ID is required to complete registration.");
+            }
+          },
+          prefill: { name, email, contact: mobile },
+          theme: { color: "#3399cc" }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.open();
+
+      } catch (err) {
+        console.error(err);
+        alert("Something went wrong. Please try again.");
+      }
+    });
+
+    // Slideshow Rotation
+    let slideIndex = 0;
+    const slides = document.querySelectorAll(".slide");
+    function showSlides() {
+      slides.forEach((slide, i) => {
+        slide.classList.remove("active-slide");
+        if (i === slideIndex) slide.classList.add("active-slide");
+      });
+      slideIndex = (slideIndex + 1) % slides.length;
+    }
+    setInterval(showSlides, 2500);
+  </script>
+</body>
+</html>
