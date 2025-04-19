@@ -26,7 +26,7 @@
     </div>
 
     <!-- Form -->
-    <form id="registerForm" class="space-y-4">
+    <form id="registerForm" method="post" action="/fake-submit" class="space-y-4">
       <input type="text" id="name" placeholder="Full Name" class="w-full px-4 py-2 border rounded-xl" required />
       <input type="text" id="city" placeholder="City & Pin Code" class="w-full px-4 py-2 border rounded-xl" required />
       <input type="email" id="email" placeholder="Email" class="w-full px-4 py-2 border rounded-xl" required />
@@ -42,7 +42,7 @@
 
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script>
-    const backendURL = "https://jannat-backend.onrender.com"; // Your live backend
+    const backendURL = "https://jannat-backend.onrender.com";
 
     document.getElementById("payAndRegister").addEventListener("click", async function () {
       const name = document.getElementById("name").value;
@@ -57,14 +57,10 @@
       }
 
       try {
-        // Step 1: Register the user
-        const registerRes = await fetch(`${backendURL}/register`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, city, email, mobile, password })
-        });
-
-        if (!registerRes.ok) throw new Error("Registration failed");
+        // Step 1: Register the user (but skip backend call for test simplicity)
+        localStorage.setItem("quizUserName", name);
+        localStorage.setItem("quizUserCity", city);
+        localStorage.setItem("quizUserMobile", mobile);
 
         // Step 2: Create Razorpay order
         const paymentRes = await fetch(`${backendURL}/payment`, {
@@ -82,24 +78,9 @@
           name: "Jannat Foundation",
           description: "Quiz Entry Fee",
           order_id: order.id,
-          handler: async function () {
-            const upi = prompt("Enter your UPI ID to receive rewards if you win:");
-            if (upi) {
-              await fetch(`${backendURL}/save-upi/${mobile}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ upi })
-              });
-
-              // Save name & city locally for quiz page use
-              localStorage.setItem("quizUserName", name);
-              localStorage.setItem("quizUserCity", city);
-
-              alert("Registration & payment successful!");
-              window.location.href = "quiz.html";
-            } else {
-              alert("UPI ID is required to complete registration.");
-            }
+          handler: async function (response) {
+            alert("Payment successful!");
+            window.location.href = "quiz.html";
           },
           prefill: { name, email, contact: mobile },
           theme: { color: "#3399cc" }

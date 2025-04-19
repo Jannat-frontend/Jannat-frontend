@@ -1,4 +1,4 @@
-<!-- Jannat Foundation Quiz - Quiz Page -->
+<!-- Jannat Foundation Quiz - Quiz Page with Payment, Sound, Shuffle, and Breakdown -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,15 +10,22 @@
 <body class="bg-blue-50 min-h-screen flex flex-col items-center justify-center p-4">
   <div class="w-full max-w-md bg-white rounded-2xl shadow-lg p-6">
     <h1 class="text-2xl font-bold text-center text-blue-700 mb-4">Jannat Foundation Quiz</h1>
-    <div id="quiz-container" class="space-y-4 text-sm"></div>
-<div id="timer" class="text-right text-blue-500 font-bold mt-2"></div>
+    <div id="quiz-container" class="space-y-4 text-sm text-center text-gray-600">Pay ₹20 to attempt the quiz.</div>
+    <div id="timer" class="text-right text-blue-500 font-bold mt-2"></div>
     <div class="mt-4 text-center">
-      <button id="start-quiz" class="bg-blue-600 text-white py-2 px-4 rounded-xl">Start Quiz</button>
+      <button id="pay-now" class="bg-green-600 text-white py-2 px-4 rounded-xl">Pay ₹20 to Start Quiz</button>
+      <button id="start-quiz" class="hidden bg-blue-600 text-white py-2 px-4 rounded-xl mt-2">Start Quiz</button>
     </div>
   </div>
 
+  <audio id="correctSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_528cdbe9bd.mp3?filename=correct-2-46134.mp3"></audio>
+  <audio id="wrongSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c576cc39e6.mp3?filename=wrong-answer-126515.mp3"></audio>
+
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script>
     const backendURL = "https://jannat-backend.onrender.com";
+    const correctSound = document.getElementById("correctSound");
+    const wrongSound = document.getElementById("wrongSound");
 
     const questions = [
       {
@@ -40,15 +47,25 @@
         type: "easy"
       },
       {
-        question: "In which year did India gain independence?",
-        options: ["1945", "1946", "1947", "1950"],
-        correctAnswer: 2,
+        question: `Section 69 of the Information Technology Act, 2000 is related to:",
+        options: [
+          "Power to issue directions for interception or monitoring or decryption",
+          "Punishment for sending offensive messages",
+          "Declaration of Critical Information Infrastructure",
+          "Provisions for the Indian Computer Emergency Response Team"
+        ],
+        correctAnswer: 0,
         type: "easy"
       },
       {
-        question: "Which Indian scientist won a Nobel Prize in Physics?",
-        options: ["C. V. Raman", "Homi Bhabha", "Vikram Sarabhai", "A. P. J. Abdul Kalam"],
-        correctAnswer: 0,
+        question: `Which of the following are headed by the PM of India?\n1. Nuclear Command Authority\n2. CSIR\n3. NDMA\n4. DAE` ,
+        options: [
+          "1, 2 and 3 only",
+          "2 and 4 only",
+          "1, 3 and 4 only",
+          "1, 2, 3 and 4"
+        ],
+        correctAnswer: 3,
         type: "hard"
       }
     ];
@@ -56,6 +73,16 @@
     let currentQuestion = 0;
     let score = 0;
     let timer;
+    let shuffled = [];
+    let answerLog = [];
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
 
     function startTimer(duration) {
       clearInterval(timer);
@@ -74,50 +101,116 @@
 
     function showNextQuestion() {
       const container = document.getElementById("quiz-container");
-      if (currentQuestion >= questions.length) {
-        // Submit score to backend
+      if (currentQuestion >= shuffled.length) {
         const name = localStorage.getItem("quizUserName") || "Unknown";
         const city = localStorage.getItem("quizUserCity") || "Unknown";
 
-fetch("https://jannat-backend.onrender.com/submit-score", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ name, city, score, status: "Pending" })
-});
-        .then(() => {
-          container.innerHTML = `<div class='text-center font-semibold text-green-600'>Quiz Completed!<br>Your Score: ${score}/${questions.length}</div>`;
-          document.getElementById("start-quiz").innerText = "Try Again";
-          document.getElementById("start-quiz").style.display = "inline-block";
-        })
-        .catch(() => {
-          container.innerHTML = `<div class='text-red-600 text-center'>Failed to submit score. Try again later.</div>`;
+        fetch(`${backendURL}/submit-score`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, city, score, status: "Pending" })
         });
+
+        container.innerHTML = `
+          <div class='text-center font-semibold text-green-600 mb-4'>Quiz Completed!<br>Your Score: ${score}/${shuffled.length}</div>
+          <div class='text-left'>
+            ${answerLog.map((a, i) => `
+              <div class="mb-2">
+                <strong>Q${i + 1}:</strong> ${a.question}<br>
+                <span class="${a.correct ? 'text-green-600' : 'text-red-600'}">Your answer: ${a.selected}</span><br>
+                <span class="text-gray-600">Correct answer: ${a.correctOption}</span>
+              </div>
+            `).join('')}
+          </div>
+          <a href="https://wa.me/?text=I scored ${score}/${shuffled.length} in Jannat Foundation Quiz! Play now at https://jannatfoundationquiz.com" target="_blank" class="block text-center mt-4 bg-green-500 text-white px-4 py-2 rounded-xl">📤 Share on WhatsApp</a>
+        `;
+
+        document.getElementById("start-quiz").innerText = "Try Again";
+        document.getElementById("start-quiz").style.display = "inline-block";
         return;
       }
 
-      const q = questions[currentQuestion];
+      const q = shuffled[currentQuestion];
       const time = q.type === "hard" ? 30 : 20;
       startTimer(time);
 
       container.innerHTML = `
         <div class="font-semibold">Q${currentQuestion + 1}: ${q.question}</div>
-        <ul class="space-y-2">
-          ${q.options.map((opt, i) => `<li><button onclick="checkAnswer(${i})" class="w-full bg-gray-100 hover:bg-blue-100 rounded p-2 text-left">${String.fromCharCode(65 + i)}. ${opt}</button></li>`).join('')}
-        </ul>
-        <div id="timer" class="text-right text-blue-500 font-bold mt-2"></div>
+        <ul id="options" class="space-y-2"></ul>
       `;
+
+      const optionsEl = document.getElementById("options");
+      q.options.forEach((opt, i) => {
+        const btn = document.createElement("button");
+        btn.className = "w-full bg-gray-100 hover:bg-blue-100 rounded p-2 text-left";
+        btn.innerHTML = `${String.fromCharCode(65 + i)}. ${opt}`;
+        btn.onclick = () => checkAnswer(i, btn, q);
+        optionsEl.appendChild(btn);
+      });
     }
 
-    function checkAnswer(selected) {
-      const correct = questions[currentQuestion].correctAnswer;
-      if (selected === correct) score++;
+    function checkAnswer(selected, button, question) {
+      const correct = question.correctAnswer;
+      const allButtons = document.querySelectorAll("#options button");
+
+      allButtons.forEach((btn, index) => {
+        btn.disabled = true;
+        if (index === correct) {
+          btn.classList.add("bg-green-200", "text-green-700", "font-semibold");
+        } else if (index === selected) {
+          btn.classList.add("bg-red-200", "text-red-700");
+        } else {
+          btn.classList.add("text-gray-400");
+        }
+      });
+
+      if (selected === correct) {
+        correctSound.play();
+        score++;
+      } else {
+        wrongSound.play();
+      }
+
+      answerLog.push({
+        question: question.question,
+        selected: `${String.fromCharCode(65 + selected)}. ${question.options[selected]}`,
+        correctOption: `${String.fromCharCode(65 + correct)}. ${question.options[correct]}`,
+        correct: selected === correct
+      });
+
       currentQuestion++;
-      showNextQuestion();
+      setTimeout(showNextQuestion, 1500);
     }
+
+    document.getElementById("pay-now").addEventListener("click", () => {
+      const razorpayOptions = {
+        key: "rzp_test_OUGnz1rs9k9vFW", // Replace this with your Razorpay Key ID
+        amount: 2000,
+        currency: "INR",
+        name: "Jannat Foundation",
+        description: "Quiz Attempt Fee",
+        handler: function (response) {
+          document.getElementById("pay-now").style.display = "none";
+          document.getElementById("start-quiz").classList.remove("hidden");
+          document.getElementById("quiz-container").innerHTML = "Click 'Start Quiz' to begin!";
+        },
+        prefill: {
+          name: localStorage.getItem("quizUserName") || "",
+          contact: localStorage.getItem("quizUserMobile") || ""
+        },
+        theme: {
+          color: "#3399cc"
+        }
+      };
+      const rzp = new Razorpay(razorpayOptions);
+      rzp.open();
+    });
 
     document.getElementById("start-quiz").addEventListener("click", () => {
       currentQuestion = 0;
       score = 0;
+      answerLog = [];
+      shuffled = shuffle([...questions]);
       showNextQuestion();
     });
   </script>
