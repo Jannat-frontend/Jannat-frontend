@@ -8,8 +8,12 @@
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
 </head>
 <body class="bg-blue-50 min-h-screen flex flex-col items-center justify-center p-4">
-  <div class="w-full max-w-md bg-white rounded-2xl shadow-lg p-6">
-    <h1 class="text-2xl font-bold text-center text-blue-700 mb-4">Jannat Foundation Quiz</h1>
+
+  <div class="w-full max-w-xl bg-white shadow-md rounded-xl p-6">
+    <h2 class="text-lg font-bold text-blue-700 mb-2">Jannat Foundation Quiz</h2>
+<div id="preview" class="text-sm space-y-4 max-h-80 overflow-y-auto border p-4 rounded bg-gray-50"></div>
+</div>
+
     <div id="quiz-container" class="space-y-4 text-sm text-center text-gray-600">Please pay ₹20 to attempt this quiz.</div>
     <div id="timer" class="text-right text-blue-500 font-bold mt-2"></div>
     <div class="mt-4 text-center">
@@ -27,6 +31,34 @@
     let attempt = 0;
     let answerLog = [];
     let timer;
+
+// Add this function:
+function refreshPreview() {
+  const preview = document.getElementById("preview");
+  preview.innerHTML = "";
+  if (localQuestions.length === 0) {
+    preview.innerHTML = "<div class='text-gray-500'>No questions added yet.</div>";
+    return;
+  }
+
+  localQuestions.forEach((q, i) => {
+    const div = document.createElement("div");
+    div.className = "border-b pb-2";
+    div.innerHTML = `
+      <strong>Q${i + 1}:</strong> ${q.question}<br>
+      ${q.options.map((opt, idx) =>
+        `<span class="${idx === q.correctAnswer ? 'text-green-600 font-semibold' : ''}">
+          ${String.fromCharCode(65 + idx)}. ${opt}
+        </span><br>`).join("")}
+      <span class="text-xs text-gray-500">Difficulty: ${q.type}</span>
+    `;
+    preview.appendChild(div);
+  });
+}
+
+// Call on load
+refreshPreview();
+
 
     async function fetchQuestions() {
       try {

@@ -1,4 +1,3 @@
-<!-- Jannat Foundation Quiz - Quiz Page with Payment Required for Each Attempt -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -18,26 +17,35 @@
     </div>
   </div>
 
-  <!-- Razorpay -->
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-
   <script>
-    const backendURL = "https://jannat-backend.onrender.com";
     let quizSet = [];
+    let quizSubset = [];
     let currentQuestion = 0;
     let score = 0;
     let attempt = 0;
+    let answerLog = [];
     let timer;
 
     async function fetchQuestions() {
       try {
-        const res = await fetch(`${backendURL}/get-questions`);
-        const data = await res.json();
-        quizSet = data.sort(() => 0.5 - Math.random()).slice(0, 5); // shuffle + pick 5
+        const res = await fetch('questions.json');
+        const allQuestions = await res.json();
+
+        // Randomize and pick 5 questions
+        quizSubset = shuffle(allQuestions).slice(0, 5);
       } catch (err) {
-        document.getElementById("quiz-container").innerHTML = "<div class='text-red-600'>❌ Failed to load questions. Contact admin.</div>";
+        document.getElementById("quiz-container").innerHTML = "<div class='text-red-600'>Failed to load questions from file. Try again later.</div>";
         console.error(err);
       }
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
     }
 
     function startTimer(duration) {
@@ -57,27 +65,21 @@
 
     function showNextQuestion() {
       const container = document.getElementById("quiz-container");
-      if (currentQuestion >= quizSet.length) {
+      if (currentQuestion >= quizSubset.length) {
         const name = localStorage.getItem("quizUserName") || "Unknown";
         const city = localStorage.getItem("quizUserCity") || "Unknown";
         const attemptKey = `attemptCount_${name}`;
         attempt = parseInt(localStorage.getItem(attemptKey) || "0") + 1;
         localStorage.setItem(attemptKey, attempt);
 
-        fetch(`${backendURL}/submit-score`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name, city, score, attempt, status: "Pending" })
-        });
-
-        container.innerHTML = `<div class='text-center font-semibold text-green-600 mb-4'>✅ Quiz Completed!<br>Your Score: ${score}/${quizSet.length}<br>Attempt #${attempt}</div>`;
+        container.innerHTML = `<div class='text-center font-semibold text-green-600 mb-4'>Quiz Completed!<br>Your Score: ${score}/${quizSubset.length}<br>Attempt #${attempt}</div>`;
         document.getElementById("start-quiz").innerText = "Pay ₹20 to Retry Quiz";
         document.getElementById("start-quiz").classList.add("hidden");
         document.getElementById("pay-now").classList.remove("hidden");
         return;
       }
 
-      const q = quizSet[currentQuestion];
+      const q = quizSubset[currentQuestion];
       const time = q.type === "hard" ? 30 : 20;
       startTimer(time);
 
@@ -111,39 +113,37 @@
         }
       });
 
-      if (selected === correct) score++;
+      if (selected === correct) {
+        score++;
+      }
+
+      answerLog.push({
+        question: question.question,
+        selected: `${String.fromCharCode(65 + selected)}. ${question.options[selected]}`,
+        correctOption: `${String.fromCharCode(65 + correct)}. ${question.options[correct]}`,
+        correct: selected === correct
+      });
+
       currentQuestion++;
       setTimeout(showNextQuestion, 1500);
     }
 
     document.getElementById("pay-now").addEventListener("click", () => {
-      const name = localStorage.getItem("quizUserName") || "";
-      const mobile = localStorage.getItem("quizUserMobile") || "";
-
-      const options = {
-        key: "rzp_test_OUGnz1rs9k9vFW", // ✅ Your Razorpay Key
-        amount: 2000,
-        currency: "INR",
-        name: "Jannat Foundation",
-        description: "Quiz Attempt Fee",
-        handler: async function () {
-          await fetchQuestions(); // Load questions after payment
-          document.getElementById("pay-now").classList.add("hidden");
-          document.getElementById("start-quiz").classList.remove("hidden");
-          document.getElementById("quiz-container").innerHTML = "✅ Payment received! Click Start Quiz to begin.";
-        },
-        prefill: { name, contact: mobile },
-        theme: { color: "#3399cc" }
-      };
-
-      const rzp = new Razorpay(options);
-      rzp.open();
+      document.getElementById("pay-now").classList.add("hidden");
+      document.getElementById("start-quiz").classList.remove("hidden");
+      document.getElementById("quiz-container").innerHTML = "Click 'Start Quiz' to begin!";
+      fetchQuestions();
     });
 
     document.getElementById("start-quiz").addEventListener("click", () => {
       currentQuestion = 0;
       score = 0;
-      showNextQuestion();
+      answerLog = [];
+      if (quizSubset.length > 0) {
+        showNextQuestion();
+      } else {
+        document.getElementById("quiz-container").innerHTML = "<div class='text-red-600'>No questions available. Please upload or check the file.</div>";
+      }
     });
   </script>
 </body>
