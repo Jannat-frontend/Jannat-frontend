@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz - Jannat Foundation</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-blue-50 min-h-screen flex flex-col items-center justify-center p-4">
+  <div class="w-full max-w-md bg-white rounded-2xl shadow-lg p-6">
+    <h1 class="text-2xl font-bold text-center text-blue-700 mb-4">Jannat Foundation Quiz</h1>
+    <div id="quiz-container" class="space-y-4 text-sm"></div>
+    <div class="mt-4 text-center">
+      <button id="start-quiz" class="bg-blue-600 text-white py-2 px-4 rounded-xl">Start Quiz</button>
+    </div>
+  </div>
+
+  <script>
+    const backendURL = "https://jannat-backend.onrender.com";
+    let questions = [];
+    let currentQuestion = 0;
+    let score = 0;
+    let timer;
+
+    async function fetchQuestions() {
+      try {
+        const res = await fetch(`${backendURL}/api/questions`);
+        const data = await res.json();
+        questions = data.questions;
+        showNextQuestion();
+      } catch (err) {
+        document.getElementById("quiz-container").innerHTML = `<div class='text-red-600 text-center'>Failed to load questions.</div>`;
+      }
+    }
+
+    function startTimer(duration) {
+      clearInterval(timer);
+      let timeLeft = duration;
+      const timerEl = document.getElementById("timer");
+      timerEl.innerText = `⏱️ ${timeLeft}s`;
+      timer = setInterval(() => {
+        timeLeft--;
+        timerEl.innerText = `⏱️ ${timeLeft}s`;
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          currentQuestion++;
+          showNextQuestion();
+        }
+      }, 1000);
+    }
+
+    function showNextQuestion() {
+      const container = document.getElementById("quiz-container");
+      if (currentQuestion >= questions.length) {
+        submitScore();
+        return;
+      }
+
+      const q = questions[currentQuestion];
+      const time = q.difficulty === "hard" ? 30 : 15;
+      startTimer(time);
+
+      container.innerHTML = `
+        <div class="font-semibold">Q${currentQuestion + 1}: ${q.question}</div>
+        <ul class="space-y-2">
+          ${q.options.map((opt, i) => `<li><button onclick="checkAnswer('${opt}')" class="w-full bg-gray-100 hover:bg-blue-100 rounded p-2 text-left">${String.fromCharCode(65 + i)}. ${opt}</button></li>`).join('')}
+        </ul>
+        <div id="timer" class="text-right text-blue-500 font-bold mt-2"></div>
+      `;
+    }
+
+    function checkAnswer(selected) {
+      const correct = questions[currentQuestion].answer;
+      if (selected === correct) score++;
+      currentQuestion++;
+      showNextQuestion();
+    }
+
+    async function submitScore() {
+      const userId = localStorage.getItem("userId");
+      if (!userId) return alert("You must be registered to submit score.");
+
+      const res = await fetch(`${backendURL}/api/submit-score`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, score })
+      });
+
+      const data = await res.json();
+      const container = document.getElementById("quiz-container");
+      if (data.success) {
+        container.innerHTML = `<div class='text-center font-semibold text-green-600'>Quiz Completed!<br>Your Score: ${score}/${questions.length}</div>`;
+        document.getElementById("start-quiz").innerText = "Try Again";
+        document.getElementById("start-quiz").style.display = "inline-block";
+      } else {
+        container.innerHTML = `<div class='text-red-600 text-center'>Failed to submit score. Try again later.</div>`;
+      }
+    }
+
+    document.getElementById("start-quiz").addEventListener("click", () => {
+      currentQuestion = 0;
+      score = 0;
+      fetchQuestions();
+    });
+  </script>
+</body>
+</html>

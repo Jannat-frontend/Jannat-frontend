@@ -1,0 +1,69 @@
+<!-- Jannat Foundation Quiz - Leaderboard Page -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leaderboard - Jannat Foundation Quiz</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="min-h-screen bg-blue-50 flex items-center justify-center p-4">
+  <div class="w-full max-w-md bg-white shadow-lg rounded-2xl p-6">
+    <h1 class="text-2xl font-bold text-blue-700 text-center mb-6">Leaderboard</h1>
+
+    <div class="overflow-y-auto max-h-96">
+      <table class="w-full text-left text-sm">
+        <thead>
+          <tr class="border-b">
+            <th class="py-2">Name</th>
+            <th class="py-2">City</th>
+            <th class="py-2 text-center">Score</th>
+            <th class="py-2 text-center">Status</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboardBody">
+          <tr><td colspan="4" class="text-center text-gray-400 py-4">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="text-center mt-6">
+      <a href="index.html" class="text-blue-600 hover:underline">← Back to Home</a>
+    </div>
+  </div>
+
+  <script>
+    const backendURL = "https://jannat-backend.onrender.com";
+
+    async function loadLeaderboard() {
+      try {
+        const res = await fetch(`${backendURL}/leaderboard`);
+        const data = await res.json();
+
+        const tbody = document.getElementById("leaderboardBody");
+        tbody.innerHTML = "";
+
+        if (data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" class="text-center text-gray-500 py-4">No entries yet</td></tr>';
+          return;
+        }
+
+        data.forEach(entry => {
+          const row = `<tr>
+            <td class="py-2 font-medium">${entry.name}</td>
+            <td class="py-2">${entry.city}</td>
+            <td class="py-2 text-center">${entry.score}/5</td>
+            <td class="py-2 text-center font-semibold ${entry.status === 'Paid' ? 'text-green-600' : (entry.status === 'Pending' ? 'text-yellow-600' : 'text-gray-500')}">${entry.status}</td>
+          </tr>`;
+          tbody.innerHTML += row;
+        });
+      } catch (err) {
+        console.error("Error fetching leaderboard:", err);
+        document.getElementById("leaderboardBody").innerHTML = '<tr><td colspan="4" class="text-center text-red-500">Failed to load leaderboard.</td></tr>';
+      }
+    }
+
+    loadLeaderboard();
+  </script>
+</body>
+</html>
