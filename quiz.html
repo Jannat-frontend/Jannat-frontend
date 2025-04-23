@@ -15,6 +15,13 @@
     </div>
   </div>
 
+  <!-- Admin Paste Questions Section -->
+  <div class="w-full max-w-md mt-8 bg-white rounded-xl shadow-lg p-6">
+    <h2 class="text-lg font-semibold text-center text-blue-700 mb-4">Admin - Paste Questions</h2>
+    <textarea id="jsonTextarea" rows="10" placeholder='Paste questions as JSON array...' class="w-full border border-gray-300 rounded p-2 text-sm"></textarea>
+    <button onclick="uploadFromTextarea()" class="bg-green-600 text-white py-2 px-4 rounded-xl w-full hover:bg-green-700 mt-2">Upload Pasted Questions</button>
+  </div>
+
   <script>
     const backendURL = "https://jannat-backend.onrender.com";
     let questions = [];
@@ -24,7 +31,7 @@
 
     async function fetchQuestions() {
       try {
-        const res = await fetch(`${backendURL}/api/questions`);
+        const res = await fetch(`${backendURL}/api/questions/fetch`);
         const data = await res.json();
         questions = data.questions;
         showNextQuestion();
@@ -97,6 +104,27 @@
       }
     }
 
+    async function uploadFromTextarea() {
+      const jsonText = document.getElementById("jsonTextarea").value;
+      try {
+        const parsed = JSON.parse(jsonText);
+        const res = await fetch(`${backendURL}/api/questions/bulk`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ questions: parsed })
+        });
+
+        const result = await res.json();
+        if (result.success) {
+          alert(`✅ ${result.count} questions uploaded successfully!`);
+        } else {
+          alert("❌ Upload failed: " + result.message);
+        }
+      } catch (err) {
+        alert("Invalid JSON format.");
+      }
+    }
+
     document.getElementById("start-quiz").addEventListener("click", () => {
       currentQuestion = 0;
       score = 0;
@@ -105,3 +133,6 @@
   </script>
 </body>
 </html>
+
+
+ 
