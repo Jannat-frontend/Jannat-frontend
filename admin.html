@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin – Upload Questions</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center p-6">
+  <div class="w-full max-w-lg bg-white p-6 rounded-xl shadow-lg">
+    <h2 class="text-xl font-bold text-center text-blue-600 mb-4">📋 Upload Questions (JSON)</h2>
+    <textarea id="jsonTextarea" rows="10" class="w-full border rounded p-2 text-sm" placeholder="Paste questions JSON array here..."></textarea>
+    <button onclick="uploadQuestions()" class="mt-4 w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Upload Questions</button>
+    <div id="uploadMsg" class="mt-4 text-center text-sm"></div>
+  </div>
+
+  <script>
+    const backendURL = "https://jannat-backend.onrender.com";
+
+    async function uploadQuestions() {
+      const input = document.getElementById('jsonTextarea').value;
+      const uploadMsg = document.getElementById('uploadMsg');
+      uploadMsg.textContent = '';
+
+      try {
+        const parsed = JSON.parse(input);
+
+        const res = await fetch(`${backendURL}/api/questions/bulk`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ questions: parsed })
+        });
+
+        const result = await res.json();
+
+        if (result.success) {
+          uploadMsg.textContent = `✅ ${result.count} questions uploaded successfully!`;
+          uploadMsg.className = "mt-4 text-green-600 text-center";
+        } else {
+          uploadMsg.textContent = "❌ Upload failed: " + result.message;
+          uploadMsg.className = "mt-4 text-red-600 text-center";
+        }
+      } catch (err) {
+        uploadMsg.textContent = "❌ Invalid JSON format.";
+        uploadMsg.className = "mt-4 text-red-600 text-center";
+      }
+    }
+  </script>
+</body>
+</html>
