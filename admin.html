@@ -1,49 +1,96 @@
+// New super-smart admin.html
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Admin – Upload Questions</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Quiz Questions</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-50 min-h-screen flex items-center justify-center p-6">
-  <div class="w-full max-w-lg bg-white p-6 rounded-xl shadow-lg">
-    <h2 class="text-xl font-bold text-center text-blue-600 mb-4">📋 Upload Questions (JSON)</h2>
-    <textarea id="jsonTextarea" rows="10" class="w-full border rounded p-2 text-sm" placeholder="Paste questions JSON array here..."></textarea>
-    <button onclick="uploadQuestions()" class="mt-4 w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Upload Questions</button>
-    <div id="uploadMsg" class="mt-4 text-center text-sm"></div>
+<body class="bg-blue-50 min-h-screen flex flex-col items-center justify-center p-4">
+  <div class="w-full max-w-md bg-white rounded-2xl shadow-lg p-6">
+    <h1 class="text-2xl font-bold text-center text-blue-700 mb-4">Upload Quiz Questions (Any Format)</h1>
+    <textarea id="jsonTextarea" rows="12" placeholder="Paste your questions here..." class="w-full border border-gray-300 rounded p-2 text-sm"></textarea>
+    <button onclick="uploadQuestions()" class="bg-blue-600 text-white py-2 px-4 rounded-xl w-full hover:bg-blue-700 mt-3">Upload Questions</button>
+    <div id="statusMessage" class="text-center mt-3 text-sm"></div>
   </div>
 
-  <script>
-    const backendURL = "https://jannat-backend.onrender.com";
+<script>
+const backendURL = "https://jannat-backend.onrender.com"; // your live backend
 
-    async function uploadQuestions() {
-      const input = document.getElementById('jsonTextarea').value;
-      const uploadMsg = document.getElementById('uploadMsg');
-      uploadMsg.textContent = '';
+function sanitizeInput(rawText) {
+  let questions = [];
+  let blocks = rawText.split(/\n{2,}/).map(b => b.trim()).filter(b => b);
 
-      try {
-        const parsed = JSON.parse(input);
+  for (let block of blocks) {
+    let lines = block.split('\n').map(l => l.trim());
+    if (lines.length >= 4) {
+      let questionLine = lines[0].replace(/^\d+\./, '').trim();
+      let options = lines.slice(1, lines.length - 2).map(opt => opt.replace(/^[a-dA-D]\)/, '').trim());
+      let answerLine = lines[lines.length - 2];
+      let difficultyLine = lines[lines.length - 1];
 
-        const res = await fetch(`${backendURL}/api/questions/bulk`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ questions: parsed })
-        });
-
-        const result = await res.json();
-
-        if (result.success) {
-          uploadMsg.textContent = `✅ ${result.count} questions uploaded successfully!`;
-          uploadMsg.className = "mt-4 text-green-600 text-center";
-        } else {
-          uploadMsg.textContent = "❌ Upload failed: " + result.message;
-          uploadMsg.className = "mt-4 text-red-600 text-center";
-        }
-      } catch (err) {
-        uploadMsg.textContent = "❌ Invalid JSON format.";
-        uploadMsg.className = "mt-4 text-red-600 text-center";
-      }
+      questions.push({
+        question: questionLine,
+        options: options,
+        answer: answerLine,
+        difficulty: difficultyLine.toLowerCase().includes('hard') ? 'hard' : 'easy'
+      });
     }
-  </script>
+  }
+  return questions;
+}
+
+async function uploadQuestions() {
+  const textarea = document.getElementById("jsonTextarea").value.trim();
+  const status = document.getElementById("statusMessage");
+  status.innerHTML = "";
+
+  if (!textarea) {
+    status.innerHTML = `<span class='text-red-600'>Please paste something first!</span>`;
+    return;
+  }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(textarea);
+    if (!Array.isArray(parsed)) parsed = [parsed];
+  } catch(e) {
+    parsed = sanitizeInput(textarea);
+  }
+
+  if (!parsed.length) {
+    status.innerHTML = `<span class='text-red-600'>Invalid format or unrecognized input!</span>`;
+    return;
+  }
+
+  // Remove duplicates based on question text
+  const seen = new Set();
+  const uniqueQuestions = parsed.filter(q => {
+    if (seen.has(q.question)) return false;
+    seen.add(q.question);
+    return true;
+  });
+
+  try {
+    const res = await fetch(`${backendURL}/api/questions/bulk`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ questions: uniqueQuestions })
+    });
+
+    const data = await res.json();
+    if (data.success) {
+      status.innerHTML = `<span class='text-green-600'>✅ ${data.count} questions uploaded successfully! <br> (Duplicate questions automatically removed if any)</span>`;
+    } else {
+      status.innerHTML = `<span class='text-red-600'>❌ Upload failed: ${data.message}</span>`;
+    }
+  } catch (err) {
+    status.innerHTML = `<span class='text-red-600'>❌ Server error or connection issue!</span>`;
+  }
+}
+</script>
+
 </body>
 </html>
