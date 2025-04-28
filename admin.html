@@ -3,63 +3,99 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Upload Questions - Admin Panel</title>
+  <title>Admin Upload Quiz - Jannat Foundation</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center p-4">
-  <div class="w-full max-w-md bg-white rounded-2xl shadow-lg p-6">
-    <h1 class="text-2xl font-bold text-center text-blue-700 mb-4">Upload Quiz Questions (JSON)</h1>
-    <textarea id="jsonTextarea" rows="10" placeholder='Paste questions here...' class="w-full border border-gray-300 rounded p-2 text-sm mb-4"></textarea>
-    <button onclick="uploadQuestions()" class="w-full bg-blue-600 text-white py-2 px-4 rounded-xl hover:bg-blue-700">Upload Questions</button>
-    <div id="statusMessage" class="text-center mt-4 text-sm"></div>
-  </div>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
 
-  <script>
-    const backendURL = "https://jannat-backend.onrender.com";
+<div class="bg-white p-6 rounded-xl shadow-lg w-full max-w-2xl">
+  <h1 class="text-2xl font-bold text-center text-blue-700 mb-4">Upload Quiz Questions (Hardcoded)</h1>
 
-    function cleanInput(input) {
-      try {
-        if (typeof input === 'string') {
-          input = input.trim();
-          if (input.startsWith('{')) input = `[${input}]`;
-          if (!input.startsWith('[')) input = `[${input}]`;
-          return JSON.parse(input);
-        }
-      } catch {
-        return null;
-      }
-    }
+  <textarea readonly rows="20" class="w-full border border-gray-300 p-2 rounded text-sm mb-4">
+const localQuestions = [
+  {
+    1 question: "Consider the following statements regarding impeachment of the President: 1. Process of impeachment to remove President from the office can be initiated only on grounds of proved misbehavior or incapacity. 2. The impeachment charges can be initiated by either House of Parliament. 3. The nominated members of either House of Parliament can not participate in the impeachment of the President. Which of the statements given above is/are correct?",
+    options: ["1 and 2 only", "1 and 3 only", "2 only", "1, 2 and 3"],
+    answer: "2 only",
+    difficulty: "hard"
+  },
+  {
+    2 question: "Recently, the government approved construction of the longest bridge connecting Dhubri and Phulbari. Which of the following is the current longest road bridge in India?",
+    options: ["Bandra-Worli Sea Link", "Bogibeel Bridge", "Patna-Hajipur Mahatma Gandhi Setu", "Dhola Sadiya Bhupen Hazarika Setu"],
+    answer: "Dhola Sadiya Bhupen Hazarika Setu",
+    difficulty: "easy"
+  },
+  {
+    3 question: "With respect to the national freedom movement, consider the following statements about Phoenix Settlement: 1. It was a group of Indians, living across Europe, to create awareness among Europeans about India's cause for freedom. 2.It was founded by Mahatma Gandhi.",
+    options: ["1 only", "2 only", "Both 1 and 2", "Neither 1 nor 2"],
+    answer: "1 only",
+    difficulty: "hard"
+  },
+  {
+    question: "Consider the following: 1. Nuclear Command Authority 2. Council of Scientific and Industrial Research 3. National Disasters Management Authority 4. Department of Atomic Energy. Which of the bodies given above are headed by Prime Minister of India?",
+    options: ["1, 2 and 3 only", "2 and 4 only", "1, 3 and 4 only", "1, 2, 3 and 4"],
+    answer: "1, 2, 3 and 4",
+    difficulty: "hard"
+  },
+  {
+    question: "Section 69 of the Information Technology Act, 2000, recently seen in the news is related to:",
+    options: ["Power to issue directions for interception or monitoring or decryption of any information through any computer resource", "Punishment for sending offensive messages through communication service.", "Declaration of Critical Information Infrastructure as protected system.", "Provisions for the Indian Computer Emergency Response Team in dealing with cyber security"],
+    answer: "Power to issue directions for interception or monitoring or decryption of any information through any computer resource",
+    difficulty: "hard"
+  },
+  {
+    question: "Consider the following scenarios: 1. Change in ocean temperatures. 2. Surface runoff and oceanic pollution. 3. Overexposure to sunlight. 4. Extreme low tides. Which of the factors given above can be responsible for coral bleaching?",
+    options: ["1 and 2 only", "3 and 4 only", "1, 2 and 3 only", "1, 2, 3 and 4"],
+    answer: "1, 2, 3 and 4",
+    difficulty: "easy"
+  },
+  {
+    question: "Consider the following statements in regard to Community Reserves: 1. They can be set up only in private or community lands. 2. They are declared by the National Board for Wildlife after consultation with the state governments. 3. Agricultural activities are strictly prohibited in the Community Reserves. Which of the statements given above is/are correct?",
+    options: ["1 only", "2 only", "2 and 3 only", "1, 2 and 3"],
+    answer: "1 only",
+    difficulty: "hard"
+  },
+  {
+    question: "Which of the following statements is not correct regarding Earthquakes?",
+    options: ["The point on the surface nearest to the focus is called epicentre.", "The Shadow Zone of S-Waves is larger as compared to that of P-Waves of Earthquake.", "Richter Scale is used for measuring the intensity of an earthquake.", "Earthquakes may lead to Soil Liquefaction, Fires and Floods."],
+    answer: "The point on the surface nearest to the focus is called epicentre.",
+    difficulty: "easy"
+  },
+  {
+    question: "Which of the following is/are correct with reference to the United Nations TIR (Transports Internationaux Routiers) Convention?",
+    options: ["It facilitates the hassle free international carriage of goods between different customs offices.", "Goods under TIR are strictly excluded from inspection at border crossings.", "India has not yet ratified the convention."],
+    answer: "It facilitates the hassle free international carriage of goods between different customs offices.",
+    difficulty: "hard"
+  },
+  {
+    question: "With reference to Mughal period 'muqaddams' were:",
+    options: ["Judicial officer at province", "Head of artisan community", "Worker in Mughal karkhanas", "Village level officer"],
+    answer: "Village level officer",
+    difficulty: "hard"
+  },
+  {
+    question: "In the context of Indian polity, consider the following statements regarding the doctrine of pleasure: 1. It is only applicable to persons who are members of the All-India Services and Central Services not to the members of State services. 2. It is used to remove Comptroller and Auditor General of India and Chief Election Commissioner from their office.",
+    options: ["1 only", "2 only", "Both 1 and 2", "Neither 1 nor 2"],
+    answer: "Neither 1 nor 2",
+    difficulty: "easy"
+  },
+  {
+    question: "Which of the following is/are considered as amendments to the Constitution under Article 368?",
+    options: ["Admission or establishment of new states.", "Cession of Indian territory to a foreign country.", "Settlement of a boundary dispute between India and another country."],
+    answer: "Cession of Indian territory to a foreign country.",
+    difficulty: "hard"
+  },
+  {
+    question: "Which among the following rights have been granted by the Consumer Protection Act, 1986?",
+    options: ["Right to choose", "Right to consumer education", "Right to seek redressal"],
+    answer: "Right to choose, Right to consumer education, Right to seek redressal",
+    difficulty: "easy"
+  }
+];
+  </textarea>
 
-    async function uploadQuestions() {
-      const textarea = document.getElementById("jsonTextarea").value;
-      const statusMessage = document.getElementById("statusMessage");
-      statusMessage.innerHTML = "";
+  <div class="text-center text-sm text-gray-500">Questions are now embedded inside the system. ✅</div>
+</div>
 
-      const parsed = cleanInput(textarea);
-      if (!parsed) {
-        statusMessage.innerHTML = `<span class='text-red-600'>❌ Invalid JSON format.</span>`;
-        return;
-      }
-
-      try {
-        const res = await fetch(`${backendURL}/api/questions/bulk`, {
-          method: "POST",
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ questions: parsed })
-        });
-
-        const data = await res.json();
-        if (data.success) {
-          statusMessage.innerHTML = `<span class='text-green-600'>✅ ${data.count} questions uploaded successfully!</span>`;
-        } else if (data.message.includes('duplicate')) {
-          statusMessage.innerHTML = `<span class='text-yellow-500'>⚠️ Some questions removed as duplicates. ${data.message}</span>`;
-        } else {
-          statusMessage.innerHTML = `<span class='text-red-600'>❌ Upload failed: ${data.message}</span>`;
-        }
-      } catch (err) {
-        statusMessage.innerHTML = `<span class='text-red-600'>❌ Server error or CORS issue.</span>`;
-      }
-    }
-  </script>
 </body>
 </html>

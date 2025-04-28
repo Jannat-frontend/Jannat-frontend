@@ -2,42 +2,67 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Quiz - Jannat Foundation</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
 </head>
-<body class="bg-blue-50 min-h-screen flex flex-col items-center justify-center p-4">
+<body class="bg-blue-50 min-h-screen flex flex-col items-center justify-center p-4 space-y-6">
+
   <div class="w-full max-w-md bg-white rounded-2xl shadow-lg p-6">
     <h1 class="text-2xl font-bold text-center text-blue-700 mb-4">Jannat Foundation Quiz</h1>
-    <div id="quiz-container" class="space-y-4 text-sm"></div>
+    <div id="quiz-container" class="space-y-4 text-sm text-center text-gray-600">Please pay ₹20 to attempt this quiz.</div>
+    <div id="timer" class="text-right text-blue-500 font-bold mt-2"></div>
+
     <div class="mt-4 text-center">
-      <button id="start-quiz" class="bg-blue-600 text-white py-2 px-4 rounded-xl">Start Quiz</button>
+      <button id="pay-now" class="bg-green-600 text-white py-2 px-4 rounded-xl">Pay ₹20 to Start Quiz</button>
+      <button id="start-quiz" class="hidden bg-blue-600 text-white py-2 px-4 rounded-xl mt-2">Start Quiz</button>
     </div>
   </div>
 
-  <!-- Admin Paste Questions Section -->
-  <div class="w-full max-w-md mt-8 bg-white rounded-xl shadow-lg p-6">
-    <h2 class="text-lg font-semibold text-center text-blue-700 mb-4">Admin - Paste Questions</h2>
-    <textarea id="jsonTextarea" rows="10" placeholder='Paste questions as JSON array...' class="w-full border border-gray-300 rounded p-2 text-sm"></textarea>
-    <button onclick="uploadFromTextarea()" class="bg-green-600 text-white py-2 px-4 rounded-xl w-full hover:bg-green-700 mt-2">Upload Pasted Questions</button>
-  </div>
+  <audio id="correctSound" src="sounds/correct.mp3"></audio>
+  <audio id="wrongSound" src="sounds/wrong.mp3"></audio>
 
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <script>
-    const backendURL = "https://jannat-backend.onrender.com";
-    let questions = [];
+    let quizSet = [];     // All questions
+    let quizSubset = [];  // Selected 5 questions
     let currentQuestion = 0;
     let score = 0;
+    let attempt = 0;
+    let answerLog = [];
     let timer;
 
-    async function fetchQuestions() {
-      try {
-        const res = await fetch(`${backendURL}/api/questions/fetch`);
-        const data = await res.json();
-        questions = data.questions;
-        showNextQuestion();
-      } catch (err) {
-        document.getElementById("quiz-container").innerHTML = `<div class='text-red-600 text-center'>Failed to load questions.</div>`;
+
+  const localQuestions = [ 
+    { 1question: "Consider the following statements regarding impeachment of the President...", options: ["1 and 2 only", "1 and 3 only", "2 only", "1, 2 and 3"], answer: "2 only", difficulty: "hard" },
+    { 2question: "Recently, the government approved construction of the longest bridge connecting Dhubri and Phulbari...", options: ["Bandra-Worli Sea Link", "Bogibeel Bridge", "Patna-Hajipur Mahatma Gandhi Setu", "Dhola Sadiya Bhupen Hazarika Setu"], answer: "Dhola Sadiya Bhupen Hazarika Setu", difficulty: "easy" },
+    { 3question: "With respect to the national freedom movement, consider the following statements about Phoenix Settlement...", options: ["1 only", "2 only", "Both 1 and 2", "Neither 1 nor 2"], answer: "1 only", difficulty: "hard" },
+    { question: "Consider the following: 1. Nuclear Command Authority 2. CSIR 3. NDMA 4. DAE...", options: ["1,2,3 only", "2 and 4 only", "1,3 and 4 only", "1,2,3 and 4"], answer: "1,2,3 and 4", difficulty: "hard" },
+    { question: "Section 69 of the Information Technology Act, 2000, recently seen in the news is related to:", options: ["Power to issue directions for interception or monitoring or decryption of any information through any computer resource", "Punishment for sending offensive messages through communication service.", "Declaration of Critical Information Infrastructure as protected system.", "Provisions for the Indian Computer Emergency Response Team in dealing with cyber security"], answer: "Power to issue directions for interception or monitoring or decryption of any information through any computer resource", difficulty: "hard" },
+    { question: "Consider the following scenarios: 1. Change in ocean temperatures. 2. Surface runoff and oceanic pollution. 3. Overexposure to sunlight. 4. Extreme low tides. Which of the factors given above can be responsible for coral bleaching?", options: ["1 and 2 only", "3 and 4 only", "1, 2 and 3 only", "1, 2, 3 and 4"], answer: "1, 2, 3 and 4", difficulty: "easy" },
+    { question: "Consider the following statements in regard to Community Reserves: 1. They can be set up only in private or community lands. 2. They are declared by the National Board for Wildlife after consultation with the state governments. 3. Agricultural activities are strictly prohibited in the Community Reserves. Which of the statements given above is/are correct?", options: ["1 only", "2 only", "2 and 3 only", "1, 2 and 3"], answer: "1 only", difficulty: "hard" },
+    { question: "Which of the following statements is not correct regarding Earthquakes?", options: ["The point on the surface nearest to the focus is called epicentre.", "The Shadow Zone of S-Waves is larger as compared to that of P-Waves of Earthquake.", "Richter Scale is used for measuring the intensity of an earthquake.", "Earthquakes may lead to Soil Liquefaction, Fires and Floods."], answer: "The point on the surface nearest to the focus is called epicentre.",
+    difficulty: "easy" },
+    { question: "Which of the following is/are correct with reference to the United Nations TIR (Transports Internationaux Routiers) Convention?", options: ["It facilitates the hassle free international carriage of goods between different customs offices.", "Goods under TIR are strictly excluded from inspection at border crossings.", "India has not yet ratified the convention."], answer: "It facilitates the hassle free international carriage of goods between different customs offices.",
+    difficulty: "hard" },
+    { question: "With reference to Mughal period 'muqaddams' were:", options: ["Judicial officer at province", "Head of artisan community", "Worker in Mughal karkhanas", "Village level officer"], answer: "Village level officer", difficulty: "hard" },
+    { question: "In the context of Indian polity, consider the following statements regarding the doctrine of pleasure: 1. It is only applicable to persons who are members of the All-India Services and Central Services not to the members of State services. 2. It is used to remove Comptroller and Auditor General of India and Chief Election Commissioner from their office.", options: ["1 only", "2 only", "Both 1 and 2", "Neither 1 nor 2"], answer: "Neither 1 nor 2", difficulty: "easy" },
+    { question: "Which of the following is/are considered as amendments to the Constitution under Article 368?", options: ["Admission or establishment of new states.", "Cession of Indian territory to a foreign country.", "Settlement of a boundary dispute between India and another country."], answer: "Cession of Indian territory to a foreign country.", difficulty: "hard" },
+    { question: "Which among the following rights have been granted by the Consumer Protection Act, 1986?", options: ["Right to choose", "Right to consumer education", "Right to seek redressal"], answer: "Right to choose, Right to consumer education, Right to seek redressal", difficulty: "easy" }
+  ];
+
+
+   async function fetchQuestions() {
+      quizSet = embeddedQuestions; // Directly pick from admin-embedded list
+      quizSubset = shuffle(quizSet).slice(0, 5); // Random 5
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
       }
+      return array;
     }
 
     function startTimer(duration) {
@@ -50,7 +75,6 @@
         timerEl.innerText = `⏱️ ${timeLeft}s`;
         if (timeLeft <= 0) {
           clearInterval(timer);
-          currentQuestion++;
           showNextQuestion();
         }
       }, 1000);
@@ -58,81 +82,107 @@
 
     function showNextQuestion() {
       const container = document.getElementById("quiz-container");
-      if (currentQuestion >= questions.length) {
-        submitScore();
+      if (currentQuestion >= quizSubset.length) {
+        const name = localStorage.getItem("quizUserName") || "Unknown";
+        const city = localStorage.getItem("quizUserCity") || "Unknown";
+        const attemptKey = `attemptCount_${name}`;
+        attempt = parseInt(localStorage.getItem(attemptKey) || "0") + 1;
+        localStorage.setItem(attemptKey, attempt);
+
+        container.innerHTML = `<div class='text-center font-semibold text-green-600 mb-4'>Quiz Completed!<br>Your Score: ${score}/${quizSubset.length}<br>Attempt #${attempt}</div>`;
+        document.getElementById("start-quiz").innerText = "Pay ₹20 to Retry Quiz";
+        document.getElementById("start-quiz").classList.add("hidden");
+        document.getElementById("pay-now").classList.remove("hidden");
         return;
       }
 
-      const q = questions[currentQuestion];
-      const time = q.difficulty === "hard" ? 30 : 15;
+      const q = quizSubset[currentQuestion];
+      const time = q.type === "hard" ? 30 : 20;
       startTimer(time);
 
       container.innerHTML = `
         <div class="font-semibold">Q${currentQuestion + 1}: ${q.question}</div>
-        <ul class="space-y-2">
-          ${q.options.map((opt, i) => `<li><button onclick="checkAnswer('${opt}')" class="w-full bg-gray-100 hover:bg-blue-100 rounded p-2 text-left">${String.fromCharCode(65 + i)}. ${opt}</button></li>`).join('')}
-        </ul>
-        <div id="timer" class="text-right text-blue-500 font-bold mt-2"></div>
+        <ul id="options" class="space-y-2"></ul>
       `;
+
+      const optionsEl = document.getElementById("options");
+      q.options.forEach((opt, i) => {
+        const btn = document.createElement("button");
+        btn.className = "w-full bg-gray-100 hover:bg-blue-100 rounded p-2 text-left";
+        btn.innerHTML = `${String.fromCharCode(65 + i)}. ${opt}`;
+        btn.onclick = () => checkAnswer(i, btn, q);
+        optionsEl.appendChild(btn);
+      });
     }
 
-    function checkAnswer(selected) {
-      const correct = questions[currentQuestion].answer;
-      if (selected === correct) score++;
-      currentQuestion++;
-      showNextQuestion();
-    }
+    function checkAnswer(selected, button, question) {
+      const correct = question.correctAnswer;
+      const allButtons = document.querySelectorAll("#options button");
 
-    async function submitScore() {
-      const userId = localStorage.getItem("userId");
-      if (!userId) return alert("You must be registered to submit score.");
-
-      const res = await fetch(`${backendURL}/api/submit-score`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, score })
+      allButtons.forEach((btn, index) => {
+        btn.disabled = true;
+        if (index === correct) {
+          btn.classList.add("bg-green-200", "text-green-700", "font-semibold");
+        } else if (index === selected) {
+          btn.classList.add("bg-red-200", "text-red-700");
+        } else {
+          btn.classList.add("text-gray-400");
+        }
       });
 
-      const data = await res.json();
-      const container = document.getElementById("quiz-container");
-      if (data.success) {
-        container.innerHTML = `<div class='text-center font-semibold text-green-600'>Quiz Completed!<br>Your Score: ${score}/${questions.length}</div>`;
-        document.getElementById("start-quiz").innerText = "Try Again";
-        document.getElementById("start-quiz").style.display = "inline-block";
+      if (selected === correct) {
+        document.getElementById("correctSound").play();
+        score++;
       } else {
-        container.innerHTML = `<div class='text-red-600 text-center'>Failed to submit score. Try again later.</div>`;
+        document.getElementById("wrongSound").play();
       }
+
+      answerLog.push({
+        question: question.question,
+        selected: `${String.fromCharCode(65 + selected)}. ${question.options[selected]}`,
+        correctOption: `${String.fromCharCode(65 + correct)}. ${question.options[correct]}`,
+        correct: selected === correct
+      });
+
+      currentQuestion++;
+      setTimeout(showNextQuestion, 1500);
     }
 
-    async function uploadFromTextarea() {
-      const jsonText = document.getElementById("jsonTextarea").value;
-      try {
-        const parsed = JSON.parse(jsonText);
-        const res = await fetch(`${backendURL}/api/questions/bulk`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ questions: parsed })
-        });
-
-        const result = await res.json();
-        if (result.success) {
-          alert(`✅ ${result.count} questions uploaded successfully!`);
-        } else {
-          alert("❌ Upload failed: " + result.message);
+    document.getElementById("pay-now").addEventListener("click", () => {
+      const options = {
+        key: "rzp_test_OUGnz1rs9k9vFW", // Replace with your Razorpay Test Key
+        amount: 2000,
+        currency: "INR",
+        name: "Jannat Foundation Quiz",
+        description: "Quiz Attempt Fee",
+        handler: function () {
+          document.getElementById("pay-now").classList.add("hidden");
+          document.getElementById("start-quiz").classList.remove("hidden");
+          document.getElementById("quiz-container").innerHTML = "Click 'Start Quiz' to begin!";
+          fetchQuestions();
+        },
+        prefill: {
+          name: "Quiz Player"
+        },
+        theme: {
+          color: "#3399cc"
         }
-      } catch (err) {
-        alert("Invalid JSON format.");
-      }
-    }
+      };
+      const rzp = new Razorpay(options);
+      rzp.open();
+    });
 
     document.getElementById("start-quiz").addEventListener("click", () => {
       currentQuestion = 0;
       score = 0;
-      fetchQuestions();
+      answerLog = [];
+      if (quizSubset.length > 0) {
+        showNextQuestion();
+      } else {
+        document.getElementById("quiz-container").innerHTML = "<div class='text-red-600'>No questions available. Please contact admin.";
+      }
     });
   </script>
+
 </body>
 </html>
-
-
- 
