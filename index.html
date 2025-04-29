@@ -2,36 +2,29 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Welcome to Jannat Foundation Quiz</title>
-  <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="bg-blue-50 min-h-screen flex flex-col items-center justify-center">
+<body class="bg-blue-50 flex flex-col items-center justify-center p-4 min-h-screen">
 
-  <h1 class="text-3xl font-bold text-blue-700 mb-4">WELCOME TO JANNAT FOUNDATION QUIZ</h1>
-  <p class="text-center mb-4 font-semibold">Make a donation of ₹20 and win ₹1000 by completing only 5 successful answers!</p>
+  <h1 class="text-3xl font-bold text-center text-blue-800 mb-4">WELCOME TO JANNAT FOUNDATION QUIZ</h1>
+  <p class="text-center text-lg mb-6">Make a donation of ₹20 and win ₹1000 by completing just only 5 successful answers!</p>
+<p class="text-center text-sm text-gray-500">The Registration fee you pay is a donation to the Jannat Foundation Trust and it will be used for the cause of poor and needy mass People!</p>
 
   <div class="flex space-x-4 mb-6">
-    <img src="./public/images/donation1.jpg" alt="Donation1" class="h-32 rounded shadow">
-    <img src="./public/images/donation2.jpg" alt="Donation2" class="h-32 rounded shadow">
-    <img src="./public/images/donation3.jpg" alt="Donation3" class="h-32 rounded shadow">
+    <img src="./public/images/donation1.jpg" alt="Donation1" class="w-32 h-48 object-cover rounded">
+    <img src="./public/images/donation2.jpg" alt="Donation2" class="w-32 h-48 object-cover rounded">
+    <img src="./public/images/donation3.jpg" alt="Donation3" class="w-32 h-48 object-cover rounded">
   </div>
 
-  <div class="flex space-x-6">
-    <a href="quiz.html">
-      <button class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-full">
-        Start Quiz
-      </button>
-    </a>
-
-    <a href="leaderboard.html">
-      <button class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full">
-        View Leaderboard
-      </button>
-    </a>
+  <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 mb-6">
+    <a href="quiz.html" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 text-center">Start Quiz</a>
+    <a href="leaderboard.html" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700 text-center">View Leaderboard</a>
   </div>
 
-  <footer class="mt-10 text-center text-sm text-gray-600">
-    Terms & Conditions apply | Contact: info@jannatfoundationquiz.com
+  <footer class="text-center text-sm text-gray-500">
+ Terms & Conditions apply | Contact: info@jannatfoundationquiz.com | All Rights Reserved @ Jannat Foundation
   </footer>
 
 </body>
