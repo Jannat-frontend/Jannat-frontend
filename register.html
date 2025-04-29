@@ -19,7 +19,7 @@
     <div class="mb-4">
       <div class="text-center text-sm font-semibold text-gray-600 mb-2">Recent Winners</div>
       <div class="relative h-20">
-        <div class="slide active-slide text-center font-semibold text-green-600">₹1500 paid to Ramesh (Bihar)</div>
+        <div class="slide active-slide text-center font-semibold text-green-600">₹1000 paid to Ramesh (Bihar)</div>
         <div class="slide text-center font-semibold text-green-600">₹1000 awarded to Sneha (Kerala)</div>
         <div class="slide text-center font-semibold text-green-600">₹1000 given to Salim (Delhi)</div>
       </div>
@@ -43,6 +43,7 @@
 
   <script>
     const backendURL = "https://jannat-backend.onrender.com";
+    fetch("https://jannat-backend.onrender.com/api/register")
 
     document.getElementById("payAndRegister").addEventListener("click", async function () {
       const name = document.getElementById("name").value;
