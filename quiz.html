@@ -7,104 +7,112 @@
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
-<body class="bg-blue-50 min-h-screen flex items-center justify-center p-4">
+<body class="bg-blue-50 min-h-screen flex items-center justify-center p-4 select-none" oncontextmenu="return false" oncopy="return false" oncut="return false" onpaste="return false">
 
   <div class="w-full max-w-md bg-white rounded-2xl shadow-lg p-6">
     <div id="quiz-container" class="text-center space-y-4">
       <h1 class="text-2xl font-bold text-blue-700 mb-4">Jannat Foundation Quiz</h1>
-      <p class="text-gray-600">Please pay ₹20 to attempt this quiz.</p>
-      <button id="pay-now" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-xl font-semibold transition">Pay ₹20 to Start Quiz</button>
+      <p class="text-gray-600">Please log in to continue.</p>
+      <a href="login.html" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-xl font-semibold transition">Login to Start Quiz</a>
     </div>
   </div>
 
   <audio id="correct-sound" src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg"></audio>
   <audio id="wrong-sound" src="https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg"></audio>
 
+ <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
 const backendURL = "https://jannat-backend.onrender.com";
 
-  <script>
     const questions = [
-      { question: "Consider the following statements regarding impeachment of the President: 1. Process of impeachment to remove President from the office can be initiated only on grounds of proved misbehavior or incapacity. 2. The impeachment charges can be initiated by either House of Parliament. 3. The nominated members of either House of Parliament can not participate in the impeachment of the President. Which of the statements given above is/are correct?", options: ["1 and 2 only", "1 and 3 only", "2 only", "1, 2 and 3"], answer: "2 only", difficulty: "hard" },
-    { question: "Recently, the government approved construction of the longest bridge connecting Dhubri and Phulbari...", options: ["Bandra-Worli Sea Link", "Bogibeel Bridge", "Patna-Hajipur Mahatma Gandhi Setu", "Dhola Sadiya Bhupen Hazarika Setu"], answer: "Dhola Sadiya Bhupen Hazarika Setu", difficulty: "easy" },
-    { question: "With respect to the national freedom movement, consider the following statements about Phoenix Settlement...", options: ["1 only", "2 only", "Both 1 and 2", "Neither 1 nor 2"], answer: "1 only", difficulty: "hard" },
-    { question: "Consider the following: 1. Nuclear Command Authority 2. CSIR 3. NDMA 4. DAE...", options: ["1,2,3 only", "2 and 4 only", "1,3 and 4 only", "1,2,3 and 4"], answer: "1,2,3 and 4", difficulty: "hard" },
-    { question: "Section 69 of the Information Technology Act, 2000, recently seen in the news is related to:", options: ["Power to issue directions for interception or monitoring or decryption of any information through any computer resource", "Punishment for sending offensive messages through communication service.", "Declaration of Critical Information Infrastructure as protected system.", "Provisions for the Indian Computer Emergency Response Team in dealing with cyber security"],
-    answer: "Power to issue directions for interception or monitoring or decryption of any information through any computer resource",
-    difficulty: "hard" },
-    { question: "Consider the following scenarios: 1. Change in ocean temperatures. 2. Surface runoff and oceanic pollution. 3. Overexposure to sunlight. 4. Extreme low tides. Which of the factors given above can be responsible for coral bleaching?", options: ["1 and 2 only", "3 and 4 only", "1, 2 and 3 only", "1, 2, 3 and 4"], answer: "1, 2, 3 and 4", difficulty: "easy" },
-    { question: "Consider the following statements in regard to Community Reserves: 1. They can be set up only in private or community lands. 2. They are declared by the National Board for Wildlife after consultation with the state governments. 3. Agricultural activities are strictly prohibited in the Community Reserves. Which of the statements given above is/are correct?", options: ["1 only", "2 only", "2 and 3 only", "1, 2 and 3"], answer: "1 only", difficulty: "hard" },
-    { question: "Which of the following statements is not correct regarding Earthquakes?", options: ["The point on the surface nearest to the focus is called epicentre.", "The Shadow Zone of S-Waves is larger as compared to that of P-Waves of Earthquake.", "Richter Scale is used for measuring the intensity of an earthquake.", "Earthquakes may lead to Soil Liquefaction, Fires and Floods."], answer: "The point on the surface nearest to the focus is called epicentre.",
-    difficulty: "easy" },
-    { question: "Which of the following is/are correct with reference to the United Nations TIR (Transports Internationaux Routiers) Convention?", options: ["It facilitates the hassle free international carriage of goods between different customs offices.", "Goods under TIR are strictly excluded from inspection at border crossings.", "India has not yet ratified the convention."], answer: "It facilitates the hassle free international carriage of goods between different customs offices.",
-    difficulty: "hard" },
-    { question: "With reference to Mughal period 'muqaddams' were:", options: ["Judicial officer at province", "Head of artisan community", "Worker in Mughal karkhanas", "Village level officer"], answer: "Village level officer",
-    difficulty: "hard" },
-    { question: "In the context of Indian polity, consider the following statements regarding the doctrine of pleasure: 1. It is only applicable to persons who are members of the All-India Services and Central Services not to the members of State services. 2. It is used to remove Comptroller and Auditor General of India and Chief Election Commissioner from their office.", options: ["1 only", "2 only", "Both 1 and 2", "Neither 1 nor 2"], answer: "Neither 1 nor 2", difficulty: "easy" },
-    { question: "Which of the following is/are considered as amendments to the Constitution under Article 368?", options: ["Admission or establishment of new states.", "Cession of Indian territory to a foreign country.", "Settlement of a boundary dispute between India and another country."], answer: "Cession of Indian territory to a foreign country.", difficulty: "hard" },
-    { question: "Which among the following rights have been granted by the Consumer Protection Act, 1986?", options: ["Right to choose", "Right to consumer education", "Right to seek redressal"], answer: "Right to choose, Right to consumer education, Right to seek redressal", difficulty: "easy" }
+      { question: "Consider the following statements regarding impeachment of the President...", options: ["1 and 2 only", "1 and 3 only", "2 only", "1, 2 and 3"], answer: "2 only" },
+      { question: "Recently, the government approved construction of the longest bridge connecting Dhubri and Phulbari...", options: ["Bandra-Worli Sea Link", "Bogibeel Bridge", "Patna-Hajipur Mahatma Gandhi Setu", "Dhola Sadiya Bhupen Hazarika Setu"], answer: "Dhola Sadiya Bhupen Hazarika Setu" },
+      { question: "With respect to the national freedom movement, consider the following statements about Phoenix Settlement...", options: ["1 only", "2 only", "Both 1 and 2", "Neither 1 nor 2"], answer: "1 only" },
+      { question: "Consider the following: 1. Nuclear Command Authority 2. CSIR 3. NDMA 4. DAE...", options: ["1,2,3 only", "2 and 4 only", "1,3 and 4 only", "1,2,3 and 4"], answer: "1,2,3 and 4" },
+      { question: "Section 69 of the Information Technology Act, 2000, recently seen in the news is related to:", options: ["Power to issue directions", "Punishment for offensive messages", "Protected system declaration", "CERT-IN cyber security"], answer: "Power to issue directions" }
     ];
 
-let currentQuestion = 0;
-    let score = 0;
+let quizSet = [], currentQuestion = 0, score = 0;
 
-    document.getElementById("pay-now").addEventListener("click", () => {
-      const options = {
-        key: "rzp_live_kpI99b9cX5iTdu", // from .env: RAZORPAY_KEY_ID
-        amount: 2000,
-        currency: "INR",
-        name: "Jannat Foundation Quiz",
-        description: "Quiz Attempt Fee",
-        handler: function () {
-          startQuiz();
-        },
-        prefill: {
-          name: localStorage.getItem("quizUserName") || "Guest"
-        },
-        theme: { color: "#3399cc" }
-      };
-      const rzp1 = new Razorpay(options);
-      rzp1.open();
-    });
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
 
-    const backendURL = "https://jannat-backend.onrender.com";
+function showQuestion() {
+  if (currentQuestion >= quizSet.length) {
+    document.getElementById("quiz-box").innerHTML = `
+      <div class="text-green-600 font-bold">✅ Quiz Completed!</div>
+      <div class="text-lg">Your Score: ${score}/${quizSet.length}</div>
+      <div class="text-sm mt-2 text-gray-500">Thanks for participating!</div>
+      <a href="index.html" class="text-blue-500 underline">← Go Home</a>
+    `;
+    return;
+  }
 
-    function startQuiz() {
-      currentQuestion = 0;
-      score = 0;
-      showQuestion();
+  const q = quizSet[currentQuestion];
+  document.getElementById("quiz-box").innerHTML = `
+    <div class="font-semibold text-left">Q${currentQuestion + 1}: ${q.question}</div>
+    <div id="options" class="space-y-2"></div>
+  `;
+
+  const optionsBox = document.getElementById("options");
+  q.options.forEach(opt => {
+    const btn = document.createElement("button");
+    btn.className = "w-full bg-gray-100 hover:bg-blue-100 py-2 px-3 rounded text-left transition";
+    btn.innerText = opt;
+    btn.onclick = () => checkAnswer(btn, q.answer);
+    optionsBox.appendChild(btn);
+  });
+}
+
+const data = await res.json();
+  const razorpay = new Razorpay({
+    key: "rzp_live_kpI99b9cX5iTdu",  // Replace with your test key
+    amount: data.amount,
+    currency: data.currency,
+    order_id: data.id,
+    handler: function () {
+      document.getElementById("pay-now").classList.add("hidden");
+      document.getElementById("start-quiz").classList.remove("hidden");
+      document.getElementById("quiz-box").innerText = "Click 'Start Quiz' to begin!";
     }
-
-    function showQuestion() {
-      if (currentQuestion >= 5) {
-        document.getElementById("quiz-container").innerHTML = `
-          <h2 class='text-2xl font-bold text-green-600'>✅ Quiz Completed!</h2>
-          <p class='mt-2 text-lg'>Your Score: ${score}/5</p>
-          <p class='text-sm text-gray-600 mt-4'>Thank you for participating!</p>
-        `;
-        return;
-      }
-
-      const q = questions[currentQuestion];
-      document.getElementById("quiz-container").innerHTML = `
-        <h1 class="text-2xl font-bold text-blue-700 mb-4">Jannat Foundation Quiz</h1>
-        <p class="text-gray-700 mb-4">Q${currentQuestion + 1}: ${q.question}</p>
-        <div class="space-y-2">
-          ${q.options.map((opt, idx) => `<button onclick="checkAnswer(this, '${opt}', '${q.answer}')" class="option-btn block w-full bg-gray-200 hover:bg-gray-300 py-2 rounded-xl transition">${String.fromCharCode(65 + idx)}. ${opt}</button>`).join('')}
-        </div>
-      `;
+  });
+  razorpay.open();
+};
+function checkAnswer(button, correct) {
+  const allBtns = document.querySelectorAll("#options button");
+  allBtns.forEach(btn => {
+    btn.disabled = true;
+    if (btn.innerText === correct) {
+      btn.classList.add("bg-green-200", "text-green-700", "font-bold");
+    } else {
+      btn.classList.add("bg-red-200", "text-red-700");
     }
+  });
 
-    function checkAnswer(button, selected, correct) {
-      const buttons = document.querySelectorAll(".option-btn");
-      buttons.forEach(btn => {
-        btn.disabled = true;
-        if (btn.innerText.includes(correct)) {
-          btn.classList.add("bg-green-200", "text-green-700", "font-semibold");
-        } else if (btn === button) {
-          btn.classList.add("bg-red-200", "text-red-700");
-        }
-      });
 
+
+  if (button.innerText === correct) {
+    score++;
+    document.getElementById("correct-sound").play();
+  } else {
+    document.getElementById("wrong-sound").play();
+  }
+
+  currentQuestion++;
+  setTimeout(showQuestion, 1000);
+}
+
+document.getElementById("start-quiz").onclick = () => {
+  shuffle(allQuestions);
+  quizSet = allQuestions.slice(0, 5);
+  currentQuestion = 0;
+  score = 0;
+  showQuestion();
+};
       if (selected === correct) {
         score++;
         document.getElementById("correct-sound").play();
